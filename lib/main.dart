@@ -299,6 +299,8 @@ class _PpeDetectionWidgetState extends State<PpeDetectionWidget> {
     );
   }
 
+  // ...existing code...
+
   Widget _buildDetectionList() {
     // Always show all detectable fields, even if not detected
     return Expanded(
@@ -327,19 +329,41 @@ class _PpeDetectionWidgetState extends State<PpeDetectionWidget> {
                   itemCount: classNames.length,
                   itemBuilder: (context, index) {
                     final label = classNames[index];
-                    // Find detection for this label, if any
-                    final det = detections.firstWhere(
-                      (d) => d.label == label,
-                      orElse: () => Detection(
-                        x1: 0,
-                        y1: 0,
-                        x2: 0,
-                        y2: 0,
-                        label: label,
-                        confidence: 0.0,
+                    // Show all labels, highlight detected ones
+                    final detected = detections.any(
+                      (d) => d.label == label && d.confidence > 0,
+                    );
+                    final negativeLabels = {'NO-Hardhat', 'NO-Mask', 'NO-Safety Vest'};
+                    final isNegative = negativeLabels.contains(label);
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                      color: detected
+                          ? (isNegative ? Colors.red[100] : Colors.green[100])
+                          : Colors.grey[300],
+                      child: ListTile(
+                        leading: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: detected
+                                ? (isNegative ? Colors.red : Colors.green)
+                                : Colors.grey,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        title: Text(
+                          label,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: detected
+                                ? (isNegative ? Colors.red : Colors.green)
+                                : Colors.black,
+                          ),
+                        ),
+                        // No trailing percentage
                       ),
                     );
-                    return _buildDetectionItemNoPercentage(det);
                   },
                 ),
               ),
@@ -349,6 +373,8 @@ class _PpeDetectionWidgetState extends State<PpeDetectionWidget> {
       ),
     );
   }
+
+// ...existing code...
 
   Widget _buildDetectionItemNoPercentage(Detection det) {
     // Define negative and positive scenarios
