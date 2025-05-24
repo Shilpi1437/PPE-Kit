@@ -339,13 +339,49 @@ class _PpeDetectionWidgetState extends State<PpeDetectionWidget> {
                         confidence: 0.0,
                       ),
                     );
-                    return _buildDetectionItem(det);
+                    return _buildDetectionItemNoPercentage(det);
                   },
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDetectionItemNoPercentage(Detection det) {
+    // Define negative and positive scenarios
+    final negativeLabels = {'NO-Hardhat', 'NO-Mask', 'NO-Safety Vest'};
+    final isNegative = negativeLabels.contains(det.label);
+    final detected = detections.any((d) => d.label == det.label && d.confidence > 0);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: detected
+          ? (isNegative ? Colors.red[100] : Colors.green[100])
+          : Colors.grey[300],
+      child: ListTile(
+        leading: Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: detected
+                ? (isNegative ? Colors.red : Colors.green)
+                : Colors.grey,
+            shape: BoxShape.circle,
+          ),
+        ),
+        title: Text(
+          det.label,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: detected
+                ? (isNegative ? Colors.red : Colors.green)
+                : Colors.black,
+          ),
+        ),
+        // No trailing percentage
       ),
     );
   }
