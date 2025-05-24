@@ -300,19 +300,20 @@ class _PpeDetectionWidgetState extends State<PpeDetectionWidget> {
   }
 
   Widget _buildDetectionList() {
+    // Always show all detectable fields, even if not detected
     return Expanded(
       flex: 2,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.grey[200],
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ), // Added closing parenthesis and comma here
+        ),
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Text(
-                'Detected Items (${detections.length})',
+                'Detected Items (${classNames.length})',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -323,9 +324,21 @@ class _PpeDetectionWidgetState extends State<PpeDetectionWidget> {
               child: Scrollbar(
                 child: ListView.builder(
                   padding: const EdgeInsets.only(bottom: 16),
-                  itemCount: detections.length,
+                  itemCount: classNames.length,
                   itemBuilder: (context, index) {
-                    final det = detections[index];
+                    final label = classNames[index];
+                    // Find detection for this label, if any
+                    final det = detections.firstWhere(
+                      (d) => d.label == label,
+                      orElse: () => Detection(
+                        x1: 0,
+                        y1: 0,
+                        x2: 0,
+                        y2: 0,
+                        label: label,
+                        confidence: 0.0,
+                      ),
+                    );
                     return _buildDetectionItem(det);
                   },
                 ),
@@ -338,8 +351,11 @@ class _PpeDetectionWidgetState extends State<PpeDetectionWidget> {
   }
 
   Widget _buildDetectionItem(Detection det) {
+    // Highlight in red if confidence < 0.5
+    final bool isLowConfidence = det.confidence < 0.5;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: isLowConfidence ? Colors.red[100] : null,
       child: ListTile(
         leading: Container(
           width: 24,
@@ -351,12 +367,17 @@ class _PpeDetectionWidgetState extends State<PpeDetectionWidget> {
         ),
         title: Text(
           det.label,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: isLowConfidence ? Colors.red : Colors.black,
+          ),
         ),
         trailing: Text(
-          '${(det.confidence * 100).toStringAsFixed(1)}%',
+          det.confidence > 0
+              ? '${(det.confidence * 100).toStringAsFixed(1)}%'
+              : 'Not detected',
           style: TextStyle(
-            color: Colors.grey[600],
+            color: isLowConfidence ? Colors.red : Colors.grey[600],
             fontSize: 14,
           ),
         ),
